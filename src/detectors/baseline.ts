@@ -24,7 +24,7 @@ function countTermOccurrences(text: string, term: string): number {
   return countRegexMatches(text, re);
 }
 
-// Optional: basic Luhn check for credit card candidates
+//  basic Luhn check for credit card candidates
 function luhnCheck(digits: string): boolean {
   let sum = 0;
   let shouldDouble = false;
