@@ -53,10 +53,10 @@ export async function runScan(
     result.totalTextItems > 0 && result.text.trim().length > 0;
   log(
     "PDF Scan Report",
-    `File: ${result.filePath}`,
+    `File: ${path.basename(result.filePath)}`,
     `Pages: ${result.numPages}`,
     `Text items: ${result.totalTextItems}`,
-    `Text layer: ${hasTextLayer ? "YES (text-based PDF)" : "NO (likely scanned/image-only)"}`,
+    `Text layer: ${hasTextLayer ? "text-based PDF" : "likely scanned/image-only"}`,
   );
 
   if (!hasTextLayer) {
