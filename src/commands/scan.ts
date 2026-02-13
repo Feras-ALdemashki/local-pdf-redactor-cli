@@ -2,7 +2,7 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { extractPdfText } from "../PDF/extractText.js";
 import { scanBaseline } from "../detectors/baseline.js";
-
+import { log, logErr } from "../UI/log.js";
 type ScanOptions = {
   addTerm?: string[];
   addTermsFile?: string;
@@ -24,19 +24,19 @@ export async function runScan(
 
   const stat = await fs.stat(fullPath).catch(() => null);
   if (!stat) {
-    console.error(`scan: file not found: ${fullPath}`);
+    logErr(`scan: file not found: ${fullPath}`);
     process.exitCode = 2;
     return;
   }
   if (!stat.isFile()) {
-    console.error(
+    logErr(
       `scan: only single PDF files are supported in v1 scan (got: ${fullPath})`,
     );
     process.exitCode = 2;
     return;
   }
   if (path.extname(fullPath).toLowerCase() !== ".pdf") {
-    console.error(`scan: not a PDF: ${fullPath}`);
+    logErr(`scan: not a PDF: ${fullPath}`);
     process.exitCode = 2;
     return;
   }
@@ -51,18 +51,16 @@ export async function runScan(
 
   const hasTextLayer =
     result.totalTextItems > 0 && result.text.trim().length > 0;
-
-  console.log("=== PDF Scan Report ===");
-  console.log(`File: ${result.filePath}`);
-  console.log(`Pages: ${result.numPages}`);
-  console.log(`Text items: ${result.totalTextItems}`);
-  console.log(
+  log(
+    "PDF Scan Report",
+    `File: ${result.filePath}`,
+    `Pages: ${result.numPages}`,
+    `Text items: ${result.totalTextItems}`,
     `Text layer: ${hasTextLayer ? "YES (text-based PDF)" : "NO (likely scanned/image-only)"}`,
   );
-  console.log("");
 
   if (!hasTextLayer) {
-    console.log(
+    log(
       "This PDF appears to have no extractable text. v1 does not support scanned PDFs.",
     );
     process.exitCode = 2;
@@ -71,10 +69,13 @@ export async function runScan(
 
   const counts = scanBaseline(result.text, customTerms);
 
-  console.log("Potential redactions (counts):");
-  for (const [k, v] of Object.entries(counts)) {
-    console.log(`- ${k}: ${v}`);
-  }
+  const entries = Object.entries(counts);
+  const keyWidth = Math.max(0, ...entries.map(([k]) => k.length));
+
+  log(
+    "Potential redactions (counts):",
+    ...entries.map(([k, v]) => `- ${k.padEnd(keyWidth)} : ${v}`),
+  );
 
   process.exitCode = 0;
 }
